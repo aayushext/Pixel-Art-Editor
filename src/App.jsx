@@ -1,73 +1,81 @@
-// import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-import { useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const canvasRef = useRef();
-
-  var canvas;
-  var canvasHeight;
-  var canvasWidth;
-  var canvasColor;
-  var ctx;
-  let editorContainer;
-
-  var loadCanvas = () => {
-    editorContainer = document.getElementById("editor");
-    canvasHeight = document.getElementById("height").value;
-    canvasWidth = document.getElementById("width").value;
-    canvasColor = document.getElementById("color").value;
-
-    var element = document.getElementById("myCanvas");
-    if (typeof element != "undefined" && element != null) {
-      editorContainer.removeChild(editorContainer.childNodes[0]);
-    }
-
-    canvas = document.createElement("canvas");
-    canvas.setAttribute("id", "myCanvas");
-    canvas.setAttribute("width", canvasWidth);
-    canvas.setAttribute("height", canvasHeight);
-    canvas.setAttribute("ref", canvasRef);
-    canvas.style.backgroundColor = canvasColor;
-
-    ctx = canvas.getContext("2d");
-    editorContainer.appendChild(canvas);
-  };
-
-  var getClickPosition = (event) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleFactor = canvas.width / rect.width;
-    const x = (event.clientX - rect.left) * scaleFactor;
-    const y = (event.clientY - rect.top) * scaleFactor;
-    return { x, y };
-  };
-
-  var click = (event) => {
-    const pos = getClickPosition(event);
-    var imageData = ctx.getImageData(pos.x, pos.y, 1, 1);
-    var data = imageData.data;
-    var r = Math.floor(Math.random() * 256);
-    var g = Math.floor(Math.random() * 256);
-    var b = Math.floor(Math.random() * 256);
-    data[0] = r;
-    data[1] = g;
-    data[2] = b;
-    data[3] = 255;
-    ctx.putImageData(imageData, pos.x, pos.y);
-  };
+  const canvasRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [canvasHeight, setCanvasHeight] = useState(16);
+  const [canvasWidth, setCanvasWidth] = useState(16);
+  const [canvasColor, setCanvasColor] = useState("#ffffff");
+  const [canvasData, setCanvasData] = useState(null);
 
   useEffect(() => {
-    window.onclick = (event) => {
-      if (
-        event.target === canvasRef.current ||
-        canvasRef.current.contains(event.target)
-      ) {
-        click(event);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.canvas.width = canvasWidth;
+    ctx.canvas.height = canvasHeight;
+    ctx.fillStyle = canvasColor;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    if (canvasData) {
+      handleLoadCanvas();
+      const imageData = new Image();
+      imageData.onload = () => {
+        ctx.drawImage(imageData, 0, 0);
+      };
+      imageData.src = canvasData;
+    }
+
+    const handleClick = (event) => {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const scaleFactor = canvasRef.current.width / rect.width;
+      const x = (event.clientX - rect.left) * scaleFactor;
+      const y = (event.clientY - rect.top) * scaleFactor;
+      const ctx = canvasRef.current.getContext("2d");
+      const imageData = ctx.getImageData(x, y, 1, 1);
+      const data = imageData.data;
+      const r = Math.floor(Math.random() * 256);
+      const g = Math.floor(Math.random() * 256);
+      const b = Math.floor(Math.random() * 256);
+      data[0] = r;
+      data[1] = g;
+      data[2] = b;
+      data[3] = 255;
+      ctx.putImageData(imageData, x, y);
+      setCanvasData(canvasRef.current.toDataURL());
+    };
+
+    const handleMouseDown = (event) => {
+      setIsDragging(true);
+      handleClick(event);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const handleMouseMove = (event) => {
+      if (isDragging) {
+        handleClick(event);
       }
     };
-  }, []);
+
+    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("mouseup", handleMouseUp);
+    canvas.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("mouseup", handleMouseUp);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [canvasWidth, canvasHeight, canvasColor, canvasData, isDragging]);
+
+  const handleLoadCanvas = () => {
+    setCanvasHeight(parseInt(document.getElementById("height").value, 10));
+    setCanvasWidth(parseInt(document.getElementById("width").value, 10));
+    setCanvasColor(document.getElementById("color").value);
+  };
 
   return (
     <>
@@ -94,18 +102,23 @@ function App() {
             ></input>
           </div>
           <div>
-            <p>Color:</p>
+            <p>Canvas Color:</p>
             <input
               id="color"
               title="Color"
               type="color"
               placeholder="Color"
-              // value={"#ffffff"}
+              defaultValue={canvasColor}
             ></input>
           </div>
         </div>
-        <button onClick={loadCanvas}>Save</button>
-        <div id="editor" ref={canvasRef}></div>
+        <div>
+          <button onClick={setCanvasData}>New</button>
+          <button onClick={handleLoadCanvas}>Resize</button>
+        </div>
+        <div id="editor">
+          <canvas id="myCanvas" ref={canvasRef} />
+        </div>
       </div>
     </>
   );

@@ -3,13 +3,16 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: aqua;
+  background-color: #6191d1;
+  padding: 10px;
 }
 
 .canvas-setup {
   display: flex;
   justify-content: center;
   align-items: center;
+  max-width: 75vw;
+  flex-wrap: wrap;
 }
 
 .canvas-setup > * {
@@ -30,7 +33,10 @@
 }
 
 #myCanvas {
-  width: 400px;
+  width: 50vw;
   image-rendering: pixelated;
 }
 
+button {
+  margin: 0 10px;
+}
