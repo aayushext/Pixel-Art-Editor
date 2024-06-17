@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: aqua;
+}
+
+.canvas-setup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.canvas-setup > * {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 0 10px;
+}
+
+.canvas-setup > * > *:last-child {
+  height: 30px;
+  margin-left: 10px;
+}
+
+#editor {
+  display: block;
+  margin: 10px 0;
+}
+
+#myCanvas {
+  width: 400px;
+  image-rendering: pixelated;
+}
+
