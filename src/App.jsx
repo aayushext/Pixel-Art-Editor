@@ -7,11 +7,15 @@ function App() {
   const [canvasHeight, setCanvasHeight] = useState(16);
   const [canvasWidth, setCanvasWidth] = useState(16);
   const [canvasColor, setCanvasColor] = useState("#ffffff");
+  const [canvasTransparency, setCanvasTransparency] = useState(16);
   const [canvasData, setCanvasData] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const ctx = canvas.getContext("2d", {
+      alpha: true,
+      willReadFrequently: true,
+    });
     ctx.canvas.width = canvasWidth;
     ctx.canvas.height = canvasHeight;
     ctx.fillStyle = canvasColor;
@@ -40,7 +44,7 @@ function App() {
       data[0] = r;
       data[1] = g;
       data[2] = b;
-      data[3] = 255;
+      data[3] = canvasTransparency;
       ctx.putImageData(imageData, x, y);
       setCanvasData(canvasRef.current.toDataURL());
     };
@@ -69,12 +73,20 @@ function App() {
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [canvasWidth, canvasHeight, canvasColor, canvasData, isDragging]);
+  }, [
+    canvasWidth,
+    canvasHeight,
+    canvasColor,
+    canvasData,
+    isDragging,
+    canvasTransparency,
+  ]);
 
   const handleLoadCanvas = () => {
     setCanvasHeight(parseInt(document.getElementById("height").value, 10));
     setCanvasWidth(parseInt(document.getElementById("width").value, 10));
     setCanvasColor(document.getElementById("color").value);
+    setCanvasTransparency(document.getElementById("transparency").value);
   };
 
   return (
@@ -88,8 +100,7 @@ function App() {
               title="Height"
               type="number"
               placeholder="Height"
-              defaultValue={16}
-            ></input>
+              defaultValue={16}></input>
           </div>
           <div>
             <p>Width:</p>
@@ -98,8 +109,7 @@ function App() {
               title="Width"
               type="number"
               placeholder="Width"
-              defaultValue={16}
-            ></input>
+              defaultValue={16}></input>
           </div>
           <div>
             <p>Canvas Color:</p>
@@ -108,8 +118,18 @@ function App() {
               title="Color"
               type="color"
               placeholder="Color"
-              defaultValue={canvasColor}
-            ></input>
+              defaultValue={canvasColor}></input>
+          </div>
+          <div>
+            <p>Transparency:</p>
+            <input
+              id="transparency"
+              title="Transparency"
+              type="number"
+              placeholder="Transparency"
+              max={255}
+              min={0}
+              defaultValue={255}></input>
           </div>
         </div>
         <div>
