@@ -7,8 +7,9 @@ function App() {
   const [canvasHeight, setCanvasHeight] = useState(16);
   const [canvasWidth, setCanvasWidth] = useState(16);
   const [canvasColor, setCanvasColor] = useState("#ffffff");
-  const [canvasTransparency, setCanvasTransparency] = useState(16);
+  const [canvasTransparency, setCanvasTransparency] = useState(null);
   const [canvasData, setCanvasData] = useState(null);
+  const [imageData, setImageData] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -18,12 +19,12 @@ function App() {
     });
     ctx.canvas.width = canvasWidth;
     ctx.canvas.height = canvasHeight;
-    ctx.fillStyle = canvasColor;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // ctx.fillStyle = "#fff";
+    // ctx.globalAlpha = canvasTransparency / 255;
+    // ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     if (canvasData) {
       handleLoadCanvas();
-      const imageData = new Image();
       imageData.onload = () => {
         ctx.drawImage(imageData, 0, 0);
       };
@@ -31,6 +32,7 @@ function App() {
     }
 
     const handleClick = (event) => {
+      // console.log("Handled Click");
       const rect = canvasRef.current.getBoundingClientRect();
       const scaleFactor = canvasRef.current.width / rect.width;
       const x = (event.clientX - rect.left) * scaleFactor;
@@ -38,15 +40,17 @@ function App() {
       const ctx = canvasRef.current.getContext("2d");
       const imageData = ctx.getImageData(x, y, 1, 1);
       const data = imageData.data;
-      const r = Math.floor(Math.random() * 256);
-      const g = Math.floor(Math.random() * 256);
-      const b = Math.floor(Math.random() * 256);
-      data[0] = r;
-      data[1] = g;
-      data[2] = b;
+      // const r = Math.floor(Math.random() * 256);
+      // const g = Math.floor(Math.random() * 256);
+      // const b = Math.floor(Math.random() * 256);
+      const color = hex2rgb(canvasColor);
+      data[0] = color.r;
+      data[1] = color.g;
+      data[2] = color.b;
       data[3] = canvasTransparency;
       ctx.putImageData(imageData, x, y);
       setCanvasData(canvasRef.current.toDataURL());
+      // console.log("Set Canvas Data");
     };
 
     const handleMouseDown = (event) => {
@@ -59,9 +63,32 @@ function App() {
     };
 
     const handleMouseMove = (event) => {
+      setCanvasColor(document.getElementById("color").value);
       if (isDragging) {
         handleClick(event);
       }
+    };
+
+    const hex2rgb = (hex) => {
+      const rgbChar = ["r", "g", "b"];
+
+      const normal = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+      if (normal) {
+        return normal.slice(1).reduce((a, e, i) => {
+          a[rgbChar[i]] = parseInt(e, 16);
+          return a;
+        }, {});
+      }
+
+      const shorthand = hex.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+      if (shorthand) {
+        return shorthand.slice(1).reduce((a, e, i) => {
+          a[rgbChar[i]] = 0x11 * parseInt(e, 16);
+          return a;
+        }, {});
+      }
+
+      return null;
     };
 
     canvas.addEventListener("mousedown", handleMouseDown);
@@ -74,6 +101,7 @@ function App() {
       canvas.removeEventListener("mousemove", handleMouseMove);
     };
   }, [
+    imageData,
     canvasWidth,
     canvasHeight,
     canvasColor,
@@ -89,6 +117,12 @@ function App() {
     setCanvasTransparency(document.getElementById("transparency").value);
   };
 
+  const newCanvas = () => {
+    setImageData(new Image());
+    setCanvasData(null);
+    handleLoadCanvas();
+  };
+
   return (
     <>
       <div className="container">
@@ -100,7 +134,8 @@ function App() {
               title="Height"
               type="number"
               placeholder="Height"
-              defaultValue={16}></input>
+              defaultValue={16}
+            ></input>
           </div>
           <div>
             <p>Width:</p>
@@ -109,7 +144,8 @@ function App() {
               title="Width"
               type="number"
               placeholder="Width"
-              defaultValue={16}></input>
+              defaultValue={16}
+            ></input>
           </div>
           <div>
             <p>Canvas Color:</p>
@@ -118,7 +154,8 @@ function App() {
               title="Color"
               type="color"
               placeholder="Color"
-              defaultValue={canvasColor}></input>
+              defaultValue={canvasColor}
+            ></input>
           </div>
           <div>
             <p>Transparency:</p>
@@ -129,11 +166,12 @@ function App() {
               placeholder="Transparency"
               max={255}
               min={0}
-              defaultValue={255}></input>
+              defaultValue={255}
+            ></input>
           </div>
         </div>
         <div>
-          <button onClick={setCanvasData}>New</button>
+          <button onClick={newCanvas}>New</button>
           <button onClick={handleLoadCanvas}>Resize</button>
         </div>
         <div id="editor">
