@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+// import { Modal } from "./components/Modal";
+import { hex2rgb } from "./components/Utils";
 import "./App.css";
 
 function App() {
@@ -9,10 +11,12 @@ function App() {
   const [canvasColor, setCanvasColor] = useState("#ffffff");
   const [canvasTransparency, setCanvasTransparency] = useState(null);
   const [canvasData, setCanvasData] = useState(null);
-  const [imageData, setImageData] = useState(null);
+  const [imageData, setImageData] = useState(new Image());
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    canvas.style.backgroundSize = `calc(200% / ${canvasWidth}) calc(200% / ${canvasHeight})`;
+
     const ctx = canvas.getContext("2d", {
       alpha: true,
       willReadFrequently: true,
@@ -35,14 +39,13 @@ function App() {
       // console.log("Handled Click");
       const rect = canvasRef.current.getBoundingClientRect();
       const scaleFactor = canvasRef.current.width / rect.width;
-      const x = (event.clientX - rect.left) * scaleFactor;
-      const y = (event.clientY - rect.top) * scaleFactor;
+      const x =
+        ((event.clientX || event.touches[0].clientX) - rect.left) * scaleFactor;
+      const y =
+        ((event.clientY || event.touches[0].clientY) - rect.top) * scaleFactor;
       const ctx = canvasRef.current.getContext("2d");
       const imageData = ctx.getImageData(x, y, 1, 1);
       const data = imageData.data;
-      // const r = Math.floor(Math.random() * 256);
-      // const g = Math.floor(Math.random() * 256);
-      // const b = Math.floor(Math.random() * 256);
       const color = hex2rgb(canvasColor);
       data[0] = color.r;
       data[1] = color.g;
@@ -50,7 +53,6 @@ function App() {
       data[3] = canvasTransparency;
       ctx.putImageData(imageData, x, y);
       setCanvasData(canvasRef.current.toDataURL());
-      // console.log("Set Canvas Data");
     };
 
     const handleMouseDown = (event) => {
@@ -69,36 +71,22 @@ function App() {
       }
     };
 
-    const hex2rgb = (hex) => {
-      const rgbChar = ["r", "g", "b"];
-
-      const normal = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-      if (normal) {
-        return normal.slice(1).reduce((a, e, i) => {
-          a[rgbChar[i]] = parseInt(e, 16);
-          return a;
-        }, {});
-      }
-
-      const shorthand = hex.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
-      if (shorthand) {
-        return shorthand.slice(1).reduce((a, e, i) => {
-          a[rgbChar[i]] = 0x11 * parseInt(e, 16);
-          return a;
-        }, {});
-      }
-
-      return null;
-    };
-
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mousemove", handleMouseMove);
+
+    canvas.addEventListener("touchstart", handleMouseDown);
+    canvas.addEventListener("touchend", handleMouseUp);
+    canvas.addEventListener("touchmove", handleMouseMove);
 
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
+
+      canvas.removeEventListener("touchstart", handleMouseDown);
+      canvas.removeEventListener("touchend", handleMouseUp);
+      canvas.removeEventListener("touchmove", handleMouseMove);
     };
   }, [
     imageData,
@@ -121,6 +109,13 @@ function App() {
     setImageData(new Image());
     setCanvasData(null);
     handleLoadCanvas();
+  };
+
+  const saveCanvas = () => {
+    const link = document.createElement("a");
+    link.href = canvasData;
+    link.download = "canvas.png";
+    link.click();
   };
 
   return (
@@ -148,7 +143,7 @@ function App() {
             ></input>
           </div>
           <div>
-            <p>Canvas Color:</p>
+            <p>Color:</p>
             <input
               id="color"
               title="Color"
@@ -173,6 +168,13 @@ function App() {
         <div>
           <button onClick={newCanvas}>New</button>
           <button onClick={handleLoadCanvas}>Resize</button>
+          <button onClick={saveCanvas}>Save</button>
+          {/* <Modal show={this.state.show} handleClose={this.hideModal}>
+            <p>Modal</p>
+          </Modal>
+          <button type="button" onClick={this.showModal}>
+            Open
+          </button> */}
         </div>
         <div id="editor">
           <canvas id="myCanvas" ref={canvasRef} />
