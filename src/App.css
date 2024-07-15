@@ -1,46 +1,18 @@
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #6191d1;
-  padding: 10px;
-}
-
-.canvas-setup {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 75vw;
-  flex-wrap: wrap;
-}
-
-.canvas-setup > * {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 0 10px;
-}
-
-.canvas-setup > * > *:last-child {
-  height: 30px;
-  margin-left: 10px;
-}
-
-#editor {
-  display: block;
-  margin: 10px 0;
-}
-
-#myCanvas {
-  width: 50vw;
-  max-width: 500px;
-  background-image: url("./assets/transparent.png");
+#canvas {
+  cursor: pointer;
+  width: 500px;
+  height: 500px;
+  border: 1px solid black;
   image-rendering: pixelated;
-  /* background-size: calc(200% / 16); */
-  background-repeat: round;
 }
 
-button {
-  margin: 0 10px;
+#guide {
+  display: grid;
+  pointer-events: none;
+  position: absolute;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+#guide div {
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
