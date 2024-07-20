@@ -17,6 +17,7 @@ function App() {
     const drawingContext = canvas.getContext("2d", {
       // alpha: true,
     });
+    // drawingContext.globalCompositeOperation = "xor";
 
     const cellPixelLength = 1;
     const colorHistory = {};
@@ -52,20 +53,17 @@ function App() {
     }
 
     function handleClearButtonClick() {
-      const yes = confirm("Are you sure you wish to clear the canvas?");
-
-      if (!yes) return;
-
-      drawingContext.fillStyle = "#ffffff";
-      drawingContext.fillRect(0, 0, canvas.width, canvas.height);
+      drawingContext.fillStyle = "#ffffffff";
+      // drawingContext.fillRect(0, 0, canvas.width, canvas.height);
+      drawingContext.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     function fillCell(cellX, cellY) {
       const startX = cellX * cellPixelLength;
       const startY = cellY * cellPixelLength;
 
+
       drawingContext.fillStyle = colorInput;
-      console.log(drawingContext);
       drawingContext.fillRect(startX, startY, cellPixelLength, cellPixelLength);
       colorHistory[`${cellX}_${cellY}`] = colorInput;
     }
@@ -96,6 +94,7 @@ function App() {
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
+      clearButton.removeEventListener("click", handleClearButtonClick);
     };
   }, [isDragging, colorInput]);
 
