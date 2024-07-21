@@ -16,6 +16,7 @@ function App() {
   const [canvasTransparency, setCanvasTransparency] = useState(null);
   const [canvasData, setCanvasData] = useState(null);
   const [imageData, setImageData] = useState(new Image());
+  const [oldUrls, setOldUrls] = useState([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -52,7 +53,11 @@ function App() {
       data[2] = color.b;
       data[3] = canvasTransparency;
       ctx.putImageData(imageData, x, y);
-      setCanvasData(canvasRef.current.toDataURL());
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        setCanvasData(url);
+        setOldUrls((prevUrls) => [...prevUrls, url]);
+      });
     };
 
     const handleMouseDown = (event) => {
@@ -99,6 +104,18 @@ function App() {
     canvasTransparency,
   ]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (oldUrls.length > 1) {
+        const url = oldUrls.shift();
+        URL.revokeObjectURL(url);
+        setOldUrls([...oldUrls]);
+      }
+    }, 30000); // Revoke old URLs every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [oldUrls]);
+
   const handleLoadCanvas = () => {
     setDrawColor(document.getElementById("color").value);
     setCanvasTransparency(document.getElementById("transparency").value);
@@ -113,10 +130,15 @@ function App() {
   };
 
   const saveCanvas = () => {
-    const link = document.createElement("a");
-    link.href = canvasData;
-    link.download = "canvas.png";
-    link.click();
+    const canvas = canvasRef.current;
+    canvas.toBlob((blob) => {
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = "canvas.png";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   return (
