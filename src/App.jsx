@@ -13,9 +13,9 @@ function App() {
   const [canvasWidth, setCanvasWidth] = useState(16);
   const [drawColor, setDrawColor] = useState("#ffffff");
   const [canvasColor, setCanvasColor] = useState("#ffffff");
-  const [canvasTransparency, setCanvasTransparency] = useState(255);
+  const [canvasTransparency, setCanvasTransparency] = useState(null);
   const [canvasData, setCanvasData] = useState(null);
-  var [imageData, setImageData] = useState(new Image());
+  const [imageData, setImageData] = useState(new Image());
 
   useEffect(() => {
     const canvas = canvasRef.current;
